@@ -1,0 +1,14 @@
+# Ignore data and outputs
+
+data/raw/
+checkpoints/
+logs/
+outputs/
+*.pt
+*.pth
+__pycache__/
+.pytest_cache/
+/.vscode/
+.DS_Store
+old/
+.venv/

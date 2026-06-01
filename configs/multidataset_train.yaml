@@ -1,0 +1,16 @@
+seed: 42
+data:
+  root: data/raw/
+  source: multi
+  size: 224
+model:
+  backbone: resnet18
+  emb_dim: 256
+train:
+  epochs: 10
+  batch_size: 32
+  lr: 1e-4
+loss:
+  margin: 1.0
+output:
+  ckpt_dir: checkpoints/multidataset

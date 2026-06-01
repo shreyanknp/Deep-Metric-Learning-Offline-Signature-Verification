@@ -1,0 +1,18 @@
+seed: 42
+data:
+  root: data/raw/GPDS
+  source: GPDS
+  size: 224
+model:
+  backbone: resnet18
+  emb_dim: 256
+train:
+  epochs: 5
+  batch_size: 32
+  lr: 1e-4
+loss:
+  margin: 1.0
+output:
+  ckpt_dir: checkpoints/gpds_resnet
+
+# test on CEDAR by changing `data.root` when running evaluate.py

@@ -1,0 +1,16 @@
+seed: 42
+data:
+  root: data/raw/CEDAR
+  source: CEDAR
+  size: 224
+model:
+  backbone: small
+  emb_dim: 128
+train:
+  epochs: 2
+  batch_size: 16
+  lr: 1e-4
+loss:
+  margin: 1.0
+output:
+  ckpt_dir: checkpoints/cedar_baseline
