@@ -4,6 +4,7 @@ data/raw/
 checkpoints/
 logs/
 outputs/
+datasets/
 *.pt
 *.pth
 __pycache__/
