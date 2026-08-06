@@ -1,5 +1,4 @@
-from .backbones import SmallCNN, ResNet18Embed
-from .siamese import SiameseNetwork
-from .triplet import TripletNetwork
+from .backbones import GeMPool, MultiScaleResNet34
+from .heads import SubCenterArcFace
 
-__all__ = ["SmallCNN", "ResNet18Embed", "SiameseNetwork", "TripletNetwork"]
+__all__ = ['GeMPool', 'MultiScaleResNet34', 'SubCenterArcFace']

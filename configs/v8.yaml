@@ -1,0 +1,50 @@
+seed: 42
+device: auto   # auto = cuda if available else cpu
+
+data:
+  img_size: 224
+
+model:
+  emb_dim: 256
+  k_sub:   3      # SubCenterArcFace sub-centres per writer
+  scale:   64.0
+
+training:
+  batch_size: 64
+
+  phase1:
+    epochs:        40
+    lr:            1.0e-3
+    weight_decay:  1.0e-4
+    warmup_epochs: 3
+    margin_start:  0.10
+    margin_end:    0.70
+    ramp_epochs:   20
+    grad_clip:     1.0
+
+  phase2:
+    epochs:       20
+    backbone_lr:  2.0e-4
+    head_lr:      5.0e-4
+    weight_decay: 1.0e-4
+    grad_clip:    1.0
+
+  phase3:
+    epochs:       15
+    lr:           5.0e-5
+    weight_decay: 1.0e-4
+    margin:       0.3
+    n_writers:    10
+    n_genuine:    3
+    n_forgery:    2
+    grad_clip:    1.0
+
+evaluation:
+  tta_n:   8
+  k_enroll: 6
+  n_pairs: 10000
+
+output:
+  models_dir:    models/
+  backbone_name: v8_backbone.pth
+  archead_name:  v8_archead.pth

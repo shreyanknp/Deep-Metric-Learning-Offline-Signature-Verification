@@ -1,4 +1,4 @@
+from .triplet import batch_hard_triplet_loss
 from .contrastive import ContrastiveLoss
-from .triplet import TripletLoss
 
-__all__ = ["ContrastiveLoss", "TripletLoss"]
+__all__ = ['batch_hard_triplet_loss', 'ContrastiveLoss']

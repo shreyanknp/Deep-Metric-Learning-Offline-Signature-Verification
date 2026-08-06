@@ -1,56 +1,100 @@
-from pathlib import Path
-from typing import List, Optional, Tuple, Dict
-import re
-from PIL import Image
+from typing import Dict, List, Set
+import pandas as pd
 import torch
 from torch.utils.data import Dataset
+from PIL import Image
 
 
-class SignatureDataset(Dataset):
-    """Generic signature dataset loader.
+class SignatureClassDataset(Dataset):
+    """Genuine-only classification dataset for Phase 1 / Phase 2 ArcFace training.
 
-    Expects folder with `genuine` and `forgery` subfolders or files named
-    with patterns that include writer and sample ids.
+    Filters `df` to training writers and genuine images only.
+    Returns (img_tensor, class_idx, sample_idx).
+
+    sample_idx is used by make_balanced_mining_loader to update the
+    per-sample EMA loss estimate for hard-mining weighting.
+    The 'dataset' column is used for balanced sampling across datasets.
     """
 
-    def __init__(self, root: str, source: str = "CEDAR", transform=None):
-        self.root = Path(root)
-        self.source = source
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        writer_to_class: Dict[str, int],
+        writer_uid_set: Set[str],
+        transform=None,
+    ):
+        sub = df[
+            df['writer_uid'].isin(writer_uid_set) & (df['label'] == 'genuine')
+        ]
+        self.records         = sub[['path', 'writer_uid', 'dataset']].reset_index(drop=True)
+        self.writer_to_class = writer_to_class
+        self.transform       = transform
+
+    def __len__(self) -> int:
+        return len(self.records)
+
+    def __getitem__(self, idx: int):
+        row = self.records.iloc[idx]
+        img = Image.open(row['path']).convert('L')
+        if self.transform:
+            img = self.transform(img)
+        return img, self.writer_to_class[row['writer_uid']], idx
+
+
+class TripletMiningDataset(Dataset):
+    """Dataset for Phase 3 batch-hard triplet mining.
+
+    Pre-indexes genuine and forgery paths per writer so StructuredBatchSampler
+    can efficiently build structured batches at yield time.
+    Eligible writers: those with ≥ 2 genuine AND ≥ 1 forgery image.
+
+    Returns (img_tensor, writer_uid_str, is_genuine_int).
+    """
+
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        writer_uid_set: Set[str],
+        transform=None,
+    ):
+        sub  = df[df['writer_uid'].isin(writer_uid_set)]
+        gen  = sub[sub['label'] == 'genuine'].groupby('writer_uid')['path'].apply(list)
+        forg = sub[sub['label'] == 'forgery'].groupby('writer_uid')['path'].apply(list)
+        eligible = [
+            w for w in gen.index
+            if w in forg.index and len(forg[w]) >= 1 and len(gen[w]) >= 2
+        ]
+
+        self.items:    List[tuple]        = []
+        self.gen_idx:  Dict[str, List[int]] = {}
+        self.forg_idx: Dict[str, List[int]] = {}
+
+        for w in eligible:
+            gi0 = len(self.items)
+            for p in gen[w]:  self.items.append((p, w, 1))
+            gi1 = len(self.items)
+            for p in forg[w]: self.items.append((p, w, 0))
+            fi1 = len(self.items)
+            self.gen_idx[w]  = list(range(gi0, gi1))
+            self.forg_idx[w] = list(range(gi1, fi1))
+
+        self.eligible  = eligible
         self.transform = transform
-        self.items = []  # (path, writer_id, label)
-        self._scan()
-
-    def _scan(self):
-        # support structured folders or flat files
-        org = self.root / "full_org"
-        forg = self.root / "full_forg"
-        if org.exists() and forg.exists():
-            for p in org.glob("*.png"):
-                self.items.append((str(p), None, "genuine"))
-            for p in forg.glob("*.png"):
-                self.items.append((str(p), None, "forgery"))
-            return
-
-        # fallback: scan any png and try to parse writer/sample
-        pat_org = re.compile(r"original_(\d+)_(\d+)\.png", re.IGNORECASE)
-        pat_forg = re.compile(r"forgeries_(\d+)_(\d+)\.png", re.IGNORECASE)
-        for p in self.root.rglob("*.png"):
-            m1 = pat_org.search(p.name)
-            m2 = pat_forg.search(p.name)
-            if m1:
-                self.items.append((str(p), int(m1.group(1)), "genuine"))
-            elif m2:
-                self.items.append((str(p), int(m2.group(1)), "forgery"))
-            else:
-                self.items.append((str(p), None, "unknown"))
 
     def __len__(self) -> int:
         return len(self.items)
 
     def __getitem__(self, idx: int):
-        path, writer_id, label = self.items[idx]
-        img = Image.open(path).convert("L")
+        path, wid, lbl = self.items[idx]
+        img = Image.open(path).convert('L')
         if self.transform:
             img = self.transform(img)
-        target = 1 if label == "genuine" else 0
-        return img, target, writer_id, self.source
+        return img, wid, lbl
+
+
+def collate_triplet(batch):
+    """Custom collate for TripletMiningDataset — keeps writer UIDs as a plain list."""
+    imgs = torch.stack([b[0] for b in batch])
+    wids = [b[1] for b in batch]
+    lbls = [int(b[2]) for b in batch]
+    return imgs, wids, lbls
