@@ -92,9 +92,8 @@
     .upload-zone {
       border: 2px dashed var(--border);
       border-radius: 10px;
-      padding: 20px 12px;
+      padding: 20px 12px 14px;
       text-align: center;
-      cursor: pointer;
       transition: border-color .15s, background .15s;
       position: relative;
       min-height: 220px;
@@ -102,17 +101,18 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
     }
-    .upload-zone:hover, .upload-zone.drag-over {
-      border-color: var(--border-hl);
-      background: #eff6ff;
-    }
+    .upload-zone:hover { border-color: var(--border-hl); background: #eff6ff; }
+    .upload-zone.drag-over { border-color: var(--border-hl); background: #eff6ff; }
+
+    /* hidden file input covers the zone but sits below buttons */
     .upload-zone input[type=file] {
       position: absolute;
       inset: 0;
       opacity: 0;
       cursor: pointer;
+      z-index: 1;
     }
     .upload-zone .icon { font-size: 2.4rem; line-height: 1; }
     .upload-zone .label {
@@ -126,7 +126,7 @@
     }
     .upload-zone img.preview {
       max-width: 100%;
-      max-height: 160px;
+      max-height: 150px;
       object-fit: contain;
       border-radius: 6px;
       display: none;
@@ -152,6 +152,124 @@
     }
     .upload-zone.has-image .clear-btn { display: flex; }
     .upload-zone.has-image input[type=file] { pointer-events: none; }
+
+    /* ── zone action buttons (upload + camera) ───────────────────────────── */
+    .zone-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+      position: relative;
+      z-index: 5;
+    }
+    .zone-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      cursor: pointer;
+      transition: background .12s, border-color .12s;
+    }
+    .zone-btn:hover { background: #f1f5f9; border-color: var(--border-hl); }
+    .zone-btn.cam-btn { color: var(--accent); border-color: var(--accent); }
+    .zone-btn.cam-btn:hover { background: #eff6ff; }
+    .upload-zone.has-image .zone-actions { display: none; }
+
+    /* ── camera modal ────────────────────────────────────────────────────── */
+    #cam-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.65);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #cam-modal.open { display: flex; }
+
+    .cam-box {
+      background: #fff;
+      border-radius: 14px;
+      padding: 24px;
+      width: min(480px, 95vw);
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .cam-box h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .cam-box h3 span {
+      font-weight: 400;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    #cam-video, #cam-canvas {
+      width: 100%;
+      border-radius: 8px;
+      background: #000;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+    }
+    #cam-video { transform: scaleX(-1); }
+    #cam-canvas { display: none; }
+
+    .cam-error {
+      font-size: 0.82rem;
+      color: var(--diff);
+      background: var(--diff-bg);
+      padding: 10px 14px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .cam-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .cam-actions button {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background .12s;
+    }
+    #cam-snap {
+      background: var(--accent);
+      color: #fff;
+    }
+    #cam-snap:hover { background: var(--accent-dk); }
+    #cam-snap:disabled { opacity: .45; cursor: not-allowed; }
+    #cam-retake {
+      background: #e2e8f0;
+      color: var(--text);
+      display: none;
+    }
+    #cam-retake:hover { background: #cbd5e1; }
+    #cam-use {
+      background: var(--same);
+      color: #fff;
+      display: none;
+    }
+    #cam-use:hover { background: #15803d; }
+    #cam-cancel {
+      background: #f1f5f9;
+      color: var(--muted);
+    }
+    #cam-cancel:hover { background: #e2e8f0; }
 
     /* ── threshold ────────────────────────────────────────────────────────── */
     .threshold-row {
@@ -208,9 +326,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── result card ─────────────────────────────────────────────────────── */
-    #result-card {
-      display: none;
-    }
+    #result-card { display: none; }
 
     .verdict-badge {
       display: flex;
@@ -230,8 +346,8 @@
       font-size: 0.85rem;
       margin-top: 2px;
     }
-    .verdict-badge.same   { background: var(--same-bg); color: var(--same); }
-    .verdict-badge.diff   { background: var(--diff-bg); color: var(--diff); }
+    .verdict-badge.same { background: var(--same-bg); color: var(--same); }
+    .verdict-badge.diff { background: var(--diff-bg); color: var(--diff); }
 
     /* ── similarity bar ───────────────────────────────────────────────────── */
     .sim-section { margin-bottom: 12px; }
@@ -263,7 +379,6 @@
     }
     .bar-fill.same { background: var(--same); }
     .bar-fill.diff { background: var(--diff); }
-    /* threshold marker */
     .threshold-marker {
       position: absolute;
       top: -4px;
@@ -354,18 +469,26 @@
         <input type="file" id="file1" accept="image/*" />
         <div class="icon">&#128393;</div>
         <div class="label">Signature 1</div>
-        <div class="hint">Click or drag &amp; drop</div>
+        <div class="hint">Click to upload or drag &amp; drop</div>
         <img class="preview" id="prev1" alt="Signature 1 preview" />
         <button class="clear-btn" id="clear1" title="Remove">&#10005;</button>
+        <div class="zone-actions">
+          <button class="zone-btn upload-btn" id="upload-btn1" title="Choose file">&#128194; File</button>
+          <button class="zone-btn cam-btn" id="cam-btn1" title="Take photo">&#128247; Camera</button>
+        </div>
       </div>
 
       <div class="upload-zone" id="zone2">
         <input type="file" id="file2" accept="image/*" />
         <div class="icon">&#128393;</div>
         <div class="label">Signature 2</div>
-        <div class="hint">Click or drag &amp; drop</div>
+        <div class="hint">Click to upload or drag &amp; drop</div>
         <img class="preview" id="prev2" alt="Signature 2 preview" />
         <button class="clear-btn" id="clear2" title="Remove">&#10005;</button>
+        <div class="zone-actions">
+          <button class="zone-btn upload-btn" id="upload-btn2" title="Choose file">&#128194; File</button>
+          <button class="zone-btn cam-btn" id="cam-btn2" title="Take photo">&#128247; Camera</button>
+        </div>
       </div>
 
     </div>
@@ -430,20 +553,51 @@
 
   <footer>Master Thesis · SRH University · 2025</footer>
 
+  <!-- ── camera modal ──────────────────────────────────────────────────────── -->
+  <div id="cam-modal">
+    <div class="cam-box">
+      <h3>Take a Photo <span id="cam-label"></span></h3>
+      <video id="cam-video" autoplay playsinline muted></video>
+      <canvas id="cam-canvas"></canvas>
+      <div class="cam-error" id="cam-error"></div>
+      <div class="cam-actions">
+        <button id="cam-snap">📸 Snap</button>
+        <button id="cam-retake">↩ Retake</button>
+        <button id="cam-use">✅ Use Photo</button>
+        <button id="cam-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
 <script>
-  // ── file handling ─────────────────────────────────────────────────────────
+  // ── zone setup ────────────────────────────────────────────────────────────
   const zones = ['1', '2'].map(n => ({
-    zone:  document.getElementById('zone' + n),
-    input: document.getElementById('file' + n),
-    prev:  document.getElementById('prev' + n),
-    clear: document.getElementById('clear' + n),
+    n,
+    zone:      document.getElementById('zone' + n),
+    input:     document.getElementById('file' + n),
+    prev:      document.getElementById('prev' + n),
+    clear:     document.getElementById('clear' + n),
+    uploadBtn: document.getElementById('upload-btn' + n),
+    camBtn:    document.getElementById('cam-btn' + n),
   }));
   let files = [null, null];
 
-  zones.forEach(({zone, input, prev, clear}, i) => {
-    // file chosen via picker
+  zones.forEach(({zone, input, prev, clear, uploadBtn, camBtn}, i) => {
+    // file input change
     input.addEventListener('change', e => {
       if (e.target.files[0]) setFile(i, e.target.files[0], prev, zone);
+    });
+
+    // "File" button explicitly triggers the file picker (z-index above file input)
+    uploadBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      input.click();
+    });
+
+    // "Camera" button
+    camBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      openCamera(i);
     });
 
     // drag-and-drop
@@ -459,14 +613,7 @@
     // clear button
     clear.addEventListener('click', e => {
       e.stopPropagation();
-      files[i] = null;
-      prev.src = '';
-      prev.style.display = 'none';
-      zone.classList.remove('has-image');
-      input.value = '';
-      input.style.pointerEvents = '';
-      updateBtn();
-      hideResult();
+      clearSlot(i);
     });
   });
 
@@ -479,6 +626,138 @@
     updateBtn();
     hideResult();
   }
+
+  function clearSlot(i) {
+    const {zone, input, prev} = zones[i];
+    files[i] = null;
+    prev.src = '';
+    zone.classList.remove('has-image');
+    input.value = '';
+    updateBtn();
+    hideResult();
+  }
+
+  // ── camera logic ──────────────────────────────────────────────────────────
+  const modal    = document.getElementById('cam-modal');
+  const video    = document.getElementById('cam-video');
+  const canvas   = document.getElementById('cam-canvas');
+  const camError = document.getElementById('cam-error');
+  const snapBtn  = document.getElementById('cam-snap');
+  const retakeBtn = document.getElementById('cam-retake');
+  const useBtn   = document.getElementById('cam-use');
+  const cancelBtn = document.getElementById('cam-cancel');
+  const camLabel = document.getElementById('cam-label');
+
+  let camStream   = null;
+  let targetSlot  = 0;
+  let capturedBlob = null;
+
+  async function openCamera(slotIndex) {
+    targetSlot   = slotIndex;
+    capturedBlob = null;
+    camLabel.textContent = '— Signature ' + (slotIndex + 1);
+    camError.style.display = 'none';
+
+    // reset to live view
+    video.style.display = 'block';
+    canvas.style.display = 'none';
+    snapBtn.style.display = '';
+    snapBtn.disabled = true;
+    retakeBtn.style.display = 'none';
+    useBtn.style.display = 'none';
+
+    modal.classList.add('open');
+
+    try {
+      camStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+      });
+      video.srcObject = camStream;
+      await video.play();
+      snapBtn.disabled = false;
+    } catch (err) {
+      camError.textContent = 'Camera error: ' + (err.message || err);
+      camError.style.display = 'block';
+    }
+  }
+
+  function stopCamera() {
+    if (camStream) {
+      camStream.getTracks().forEach(t => t.stop());
+      camStream = null;
+    }
+    video.srcObject = null;
+  }
+
+  function closeModal() {
+    stopCamera();
+    modal.classList.remove('open');
+  }
+
+  snapBtn.addEventListener('click', () => {
+    canvas.width  = video.videoWidth  || 640;
+    canvas.height = video.videoHeight || 480;
+    // draw mirrored so canvas matches what the user sees in the live preview
+    const ctx = canvas.getContext('2d');
+    ctx.save();
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0);
+    ctx.restore();
+
+    video.style.display = 'none';
+    canvas.style.display = 'block';
+    snapBtn.style.display = 'none';
+    retakeBtn.style.display = '';
+    useBtn.style.display = '';
+  });
+
+  retakeBtn.addEventListener('click', () => {
+    capturedBlob = null;
+    canvas.style.display = 'none';
+    video.style.display = 'block';
+    retakeBtn.style.display = 'none';
+    useBtn.style.display = 'none';
+    snapBtn.style.display = '';
+    snapBtn.disabled = false;
+  });
+
+  useBtn.addEventListener('click', () => {
+    try {
+      const dataURL = canvas.toDataURL('image/png');
+      if (!dataURL || dataURL === 'data:,') {
+        camError.textContent = 'Capture failed — canvas is empty. Try snapping again.';
+        camError.style.display = 'block';
+        return;
+      }
+
+      // decode dataURL → Blob → File
+      const byteStr = atob(dataURL.split(',')[1]);
+      const ab = new ArrayBuffer(byteStr.length);
+      const ia = new Uint8Array(ab);
+      for (let k = 0; k < byteStr.length; k++) ia[k] = byteStr.charCodeAt(k);
+      const blob = new Blob([ab], { type: 'image/png' });
+      const file = new File([blob], 'camera_sig' + (targetSlot + 1) + '.png', { type: 'image/png' });
+
+      // register file and set preview directly from dataURL (no async FileReader)
+      files[targetSlot] = file;
+      const {prev, zone} = zones[targetSlot];
+      prev.src = dataURL;
+      zone.classList.add('has-image');
+      updateBtn();
+      hideResult();
+      closeModal();
+    } catch (err) {
+      console.error('Camera capture error:', err);
+      camError.textContent = 'Capture error: ' + err.message;
+      camError.style.display = 'block';
+    }
+  });
+
+  cancelBtn.addEventListener('click', closeModal);
+
+  // close modal on backdrop click
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
   // ── threshold ─────────────────────────────────────────────────────────────
   const slider = document.getElementById('threshold');
@@ -515,7 +794,6 @@
     try {
       const res  = await fetch('/verify', { method: 'POST', body: fd });
       const data = await res.json();
-
       if (!res.ok || data.error) {
         showError(data.error || 'Server error — check the console.');
       } else {
@@ -532,47 +810,39 @@
 
   // ── result display ────────────────────────────────────────────────────────
   function showResult(d) {
-    const same    = d.verdict === 'same';
-    const badge   = document.getElementById('verdict-badge');
-    const icon    = document.getElementById('verdict-icon');
-    const text    = document.getElementById('verdict-text');
-    const sub     = document.getElementById('verdict-sub');
-    const fill    = document.getElementById('bar-fill');
-    const track   = document.getElementById('bar-track');
-    const marker  = document.getElementById('thresh-marker');
-    const simPct  = simToBarPct(d.similarity);
-    const thrPct  = simToBarPct(d.threshold);
+    const same   = d.verdict === 'same';
+    const badge  = document.getElementById('verdict-badge');
+    const icon   = document.getElementById('verdict-icon');
+    const text   = document.getElementById('verdict-text');
+    const sub    = document.getElementById('verdict-sub');
+    const fill   = document.getElementById('bar-fill');
+    const marker = document.getElementById('thresh-marker');
 
-    badge.className = 'verdict-badge ' + (same ? 'same' : 'diff');
-    icon.textContent = same ? '✅' : '❌';
-    text.textContent = same ? 'Same Writer' : 'Different Writers';
-    sub.textContent  = same
+    badge.className     = 'verdict-badge ' + (same ? 'same' : 'diff');
+    icon.textContent    = same ? '✅' : '❌';
+    text.textContent    = same ? 'Same Writer' : 'Different Writers';
+    sub.textContent     = same
       ? 'The two signatures appear to be from the same person.'
       : 'The two signatures appear to be from different writers.';
 
-    // bar
     fill.style.width = '0%';
     fill.className   = 'bar-fill ' + (same ? 'same' : 'diff');
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => { fill.style.width = simPct + '%'; });
+      requestAnimationFrame(() => { fill.style.width = simToBarPct(d.similarity) + '%'; });
     });
 
-    // threshold marker
-    marker.style.left       = thrPct + '%';
-    marker.dataset.label    = 'θ=' + d.threshold.toFixed(2);
+    marker.style.left    = simToBarPct(d.threshold) + '%';
+    marker.dataset.label = 'θ=' + d.threshold.toFixed(2);
 
-    // scores
-    document.getElementById('sim-score').textContent  = d.similarity.toFixed(4);
-    document.getElementById('meta-sim').textContent   = d.similarity.toFixed(4);
+    document.getElementById('sim-score').textContent   = d.similarity.toFixed(4);
+    document.getElementById('meta-sim').textContent    = d.similarity.toFixed(4);
     document.getElementById('meta-thresh').textContent = d.threshold.toFixed(2);
-    document.getElementById('meta-conf').textContent  = d.confidence;
+    document.getElementById('meta-conf').textContent   = d.confidence;
 
     document.getElementById('result-card').style.display = 'block';
     document.getElementById('result-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  // Map cosine similarity [−1, 1] → bar percentage [0, 100].
-  // We display the range [−0.2 … 1.0] for visual clarity.
   function simToBarPct(sim) {
     const lo = -0.2, hi = 1.0;
     return Math.max(0, Math.min(100, ((sim - lo) / (hi - lo)) * 100));
