@@ -252,19 +252,11 @@
       color: #fff;
     }
     #cam-snap:hover { background: var(--accent-dk); }
-    #cam-snap:disabled { opacity: .45; cursor: not-allowed; }
-    #cam-retake {
-      background: #e2e8f0;
-      color: var(--text);
-      display: none;
-    }
-    #cam-retake:hover { background: #cbd5e1; }
-    #cam-use {
+    #cam-upload {
       background: var(--same);
       color: #fff;
-      display: none;
     }
-    #cam-use:hover { background: #15803d; }
+    #cam-upload:hover { background: #15803d; }
     #cam-cancel {
       background: #f1f5f9;
       color: var(--muted);
@@ -625,8 +617,7 @@
       <div class="cam-error" id="cam-error"></div>
       <div class="cam-actions">
         <button id="cam-snap">📸 Snap</button>
-        <button id="cam-retake">↩ Retake</button>
-        <button id="cam-use">✅ Use Photo</button>
+        <button id="cam-upload" style="display:none">⬆ Upload</button>
         <button id="cam-cancel">Cancel</button>
       </div>
     </div>
@@ -731,6 +722,7 @@
     const {zone, input, prev} = zones[i];
     files[i] = null;
     prev.src = '';
+    prev.style.transform = '';
     zone.classList.remove('has-image');
     input.value = '';
     // reset processed preview for this slot
@@ -749,29 +741,24 @@
   const video    = document.getElementById('cam-video');
   const canvas   = document.getElementById('cam-canvas');
   const camError = document.getElementById('cam-error');
-  const snapBtn  = document.getElementById('cam-snap');
-  const retakeBtn = document.getElementById('cam-retake');
-  const useBtn   = document.getElementById('cam-use');
+  const snapBtn   = document.getElementById('cam-snap');
+  const uploadBtn = document.getElementById('cam-upload');
   const cancelBtn = document.getElementById('cam-cancel');
-  const camLabel = document.getElementById('cam-label');
+  const camLabel  = document.getElementById('cam-label');
 
-  let camStream   = null;
-  let targetSlot  = 0;
-  let capturedBlob = null;
+  let camStream  = null;
+  let targetSlot = 0;
 
   async function openCamera(slotIndex) {
-    targetSlot   = slotIndex;
-    capturedBlob = null;
+    targetSlot = slotIndex;
     camLabel.textContent = '— Signature ' + (slotIndex + 1);
     camError.style.display = 'none';
 
-    // reset to live view
+    // reset to live-view state
     video.style.display = 'block';
     canvas.style.display = 'none';
     snapBtn.style.display = '';
-    snapBtn.disabled = true;
-    retakeBtn.style.display = 'none';
-    useBtn.style.display = 'none';
+    uploadBtn.style.display = 'none';
 
     modal.classList.add('open');
 
@@ -780,8 +767,7 @@
         video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
       });
       video.srcObject = camStream;
-      await video.play();
-      snapBtn.disabled = false;
+      video.play().catch(() => {});
     } catch (err) {
       camError.textContent = 'Camera error: ' + (err.message || err);
       camError.style.display = 'block';
@@ -815,21 +801,10 @@
     video.style.display = 'none';
     canvas.style.display = 'block';
     snapBtn.style.display = 'none';
-    retakeBtn.style.display = '';
-    useBtn.style.display = '';
+    uploadBtn.style.display = '';
   });
 
-  retakeBtn.addEventListener('click', () => {
-    capturedBlob = null;
-    canvas.style.display = 'none';
-    video.style.display = 'block';
-    retakeBtn.style.display = 'none';
-    useBtn.style.display = 'none';
-    snapBtn.style.display = '';
-    snapBtn.disabled = false;
-  });
-
-  useBtn.addEventListener('click', () => {
+  uploadBtn.addEventListener('click', () => {
     try {
       const dataURL = canvas.toDataURL('image/png');
       if (!dataURL || dataURL === 'data:,') {
@@ -846,17 +821,19 @@
       const blob = new Blob([ab], { type: 'image/png' });
       const file = new File([blob], 'camera_sig' + (targetSlot + 1) + '.png', { type: 'image/png' });
 
-      // register file and set preview directly from dataURL (no async FileReader)
       files[targetSlot] = file;
       const {prev, zone} = zones[targetSlot];
       prev.src = dataURL;
+      prev.style.transform = 'scaleX(-1)';
       zone.classList.add('has-image');
       updateBtn();
       hideResult();
+      showProcessedRow();
+      fetchPreview(targetSlot, file);
       closeModal();
     } catch (err) {
-      console.error('Camera capture error:', err);
-      camError.textContent = 'Capture error: ' + err.message;
+      console.error('Camera upload error:', err);
+      camError.textContent = 'Upload error: ' + err.message;
       camError.style.display = 'block';
     }
   });
