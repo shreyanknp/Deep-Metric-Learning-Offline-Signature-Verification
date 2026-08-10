@@ -1,5 +1,7 @@
 import io, sys
 from pathlib import Path
+import numpy as np
+import cv2
 
 # Allow `from src.models import ...` when running from within src/frontend/
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -33,6 +35,58 @@ else:
     print(f'[WARNING] Weights not found at {WEIGHTS_PATH}')
     print('          Run train.py (or notebook 08) and save the model first.')
 
+# ── Signature extraction ───────────────────────────────────────────────────
+def extract_signature(pil_img: 'Image.Image') -> 'Image.Image':
+    """Remove background and isolate the signature region.
+
+    Pipeline:
+      1. Grayscale
+      2. Gaussian blur  — suppress texture / camera noise
+      3. Adaptive threshold — dark ink → black, background → white
+                             handles coloured paper and uneven lighting
+      4. Morphological close — fill small gaps in ink strokes
+      5. Bounding-box crop around ink with 5% padding
+      6. Return white-background / black-ink PIL image
+    """
+    gray = np.array(pil_img.convert('L'))
+
+    # Denoise
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+    # Adaptive threshold: ink (dark) → 0, background (light) → 255
+    binary = cv2.adaptiveThreshold(
+        blurred, 255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        blockSize=15, C=8,
+    )
+
+    # Morphological close to reconnect broken strokes
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+
+    # Find ink pixels (value = 0) and compute bounding box
+    ink = np.where(closed == 0)
+    if ink[0].size == 0:
+        # Nothing found — return grayscale original as fallback
+        return pil_img.convert('L')
+
+    y_min, y_max = int(ink[0].min()), int(ink[0].max())
+    x_min, x_max = int(ink[1].min()), int(ink[1].max())
+
+    # 5% padding around the detected ink region
+    h, w = gray.shape
+    pad_y = max(10, int((y_max - y_min) * 0.05))
+    pad_x = max(10, int((x_max - x_min) * 0.05))
+    y_min = max(0, y_min - pad_y)
+    y_max = min(h, y_max + pad_y)
+    x_min = max(0, x_min - pad_x)
+    x_max = min(w, x_max + pad_x)
+
+    cropped = closed[y_min:y_max, x_min:x_max]
+    return Image.fromarray(cropped)
+
+
 # ── TTA transform ──────────────────────────────────────────────────────────
 _tta_tfm = T.Compose([
     T.Resize((IMG_SIZE, IMG_SIZE)),
@@ -45,7 +99,7 @@ _tta_tfm = T.Compose([
 
 @torch.no_grad()
 def embed(pil_img, n_views: int = TTA_N) -> torch.Tensor:
-    img   = pil_img.convert('L')
+    img   = extract_signature(pil_img)   # isolate ink region, white bg
     views = torch.stack([_tta_tfm(img) for _ in range(n_views)]).to(DEVICE)
     embs  = F.normalize(backbone(views), dim=1)
     return F.normalize(embs.mean(0), dim=0)
