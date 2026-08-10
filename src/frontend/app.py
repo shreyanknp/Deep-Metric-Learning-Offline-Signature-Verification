@@ -1,4 +1,4 @@
-import io, sys
+import io, sys, base64
 from pathlib import Path
 import numpy as np
 import cv2
@@ -11,7 +11,7 @@ if str(PROJECT_ROOT) not in sys.path:
 import torch
 import torch.nn.functional as F
 import torchvision.transforms as T
-from PIL import Image
+from PIL import Image, ImageOps
 from flask import Flask, request, jsonify, render_template
 
 from src.models import MultiScaleResNet34
@@ -48,6 +48,7 @@ def extract_signature(pil_img: 'Image.Image') -> 'Image.Image':
       5. Bounding-box crop around ink with 5% padding
       6. Return white-background / black-ink PIL image
     """
+    pil_img = ImageOps.exif_transpose(pil_img)  # honour camera rotation EXIF tag
     gray = np.array(pil_img.convert('L'))
 
     # Denoise
@@ -112,6 +113,19 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     return render_template('index.html', model_ready=MODEL_READY)
+
+
+@app.route('/preprocess', methods=['POST'])
+def preprocess_preview():
+    f = request.files.get('image')
+    if not f:
+        return jsonify({'error': 'No image provided'}), 400
+    pil_img   = Image.open(io.BytesIO(f.read()))
+    processed = extract_signature(pil_img)
+    buf = io.BytesIO()
+    processed.save(buf, format='PNG')
+    b64 = base64.b64encode(buf.getvalue()).decode()
+    return jsonify({'image': 'data:image/png;base64,' + b64})
 
 
 @app.route('/verify', methods=['POST'])
