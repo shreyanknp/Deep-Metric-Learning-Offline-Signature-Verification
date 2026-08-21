@@ -5,7 +5,7 @@ checkpoints/
 logs/
 outputs/
 datasets/
-datalab_executes/
+
 *.zip
 *.pt
 *.pth
@@ -16,3 +16,4 @@ __pycache__/
 old/
 .venv/
 _write_*
+thesis/
