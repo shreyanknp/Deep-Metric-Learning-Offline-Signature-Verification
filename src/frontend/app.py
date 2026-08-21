@@ -16,11 +16,15 @@ from flask import Flask, request, jsonify, render_template
 
 from src.models import MultiScaleResNet34
 
-WEIGHTS_PATH = PROJECT_ROOT / 'models' / 'v8_backbone.pth'
-EMB_DIM      = 256
-IMG_SIZE     = 224
-TTA_N        = 4
-DEVICE       = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+WEIGHTS_PATH  = PROJECT_ROOT / 'models' / 'v8_backbone.pth'
+EMB_DIM       = 256
+IMG_SIZE      = 224
+TTA_N         = 4
+DEVICE        = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# ── feature toggle ─────────────────────────────────────────────────────────
+# Set to False to hide the "What the model sees" preprocessed preview panel.
+SHOW_PREVIEW  = True
 
 # ── load backbone ──────────────────────────────────────────────────────────
 backbone    = MultiScaleResNet34(EMB_DIM).to(DEVICE)
@@ -112,7 +116,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template('index.html', model_ready=MODEL_READY)
+    return render_template('index.html', model_ready=MODEL_READY, show_preview=SHOW_PREVIEW)
 
 
 @app.route('/preprocess', methods=['POST'])

@@ -532,7 +532,8 @@
 
     </div>
 
-    <!-- processed preview -->
+    <!-- processed preview (controlled by SHOW_PREVIEW flag in app.py) -->
+    {% if show_preview %}
     <div id="processed-row">
       <div class="proc-box" id="proc-box1">
         <div class="proc-label">What the model sees — Sig 1</div>
@@ -547,6 +548,7 @@
         <div class="proc-hint" id="proc-hint2">Upload a signature to see the extraction</div>
       </div>
     </div>
+    {% endif %}
 
     <!-- threshold slider -->
     <div class="threshold-row">
@@ -672,16 +674,24 @@
   });
 
   // ── processed preview elements ────────────────────────────────────────────
-  const procRow   = document.getElementById('processed-row');
-  const procSpins = [document.getElementById('proc-spin1'), document.getElementById('proc-spin2')];
-  const procImgs  = [document.getElementById('proc-img1'),  document.getElementById('proc-img2')];
-  const procHints = [document.getElementById('proc-hint1'), document.getElementById('proc-hint2')];
+  // Controlled by SHOW_PREVIEW = {{ 'true' if show_preview else 'false' }} (set in app.py)
+  const SHOW_PREVIEW = {{ 'true' if show_preview else 'false' }};
+
+  let procRow, procSpins, procImgs, procHints;
+  if (SHOW_PREVIEW) {
+    procRow   = document.getElementById('processed-row');
+    procSpins = [document.getElementById('proc-spin1'), document.getElementById('proc-spin2')];
+    procImgs  = [document.getElementById('proc-img1'),  document.getElementById('proc-img2')];
+    procHints = [document.getElementById('proc-hint1'), document.getElementById('proc-hint2')];
+  }
 
   function showProcessedRow() {
+    if (!SHOW_PREVIEW) return;
     if (files[0] || files[1]) procRow.classList.add('visible');
   }
 
   async function fetchPreview(i, f) {
+    if (!SHOW_PREVIEW) return;
     procSpins[i].style.display = 'block';
     procImgs[i].style.display  = 'none';
     procHints[i].style.display = 'none';
@@ -725,13 +735,14 @@
     prev.style.transform = '';
     zone.classList.remove('has-image');
     input.value = '';
-    // reset processed preview for this slot
-    procImgs[i].src            = '';
-    procImgs[i].style.display  = 'none';
-    procSpins[i].style.display = 'none';
-    procHints[i].textContent   = 'Upload a signature to see the extraction';
-    procHints[i].style.display = 'block';
-    if (!files[0] && !files[1]) procRow.classList.remove('visible');
+    if (SHOW_PREVIEW) {
+      procImgs[i].src            = '';
+      procImgs[i].style.display  = 'none';
+      procSpins[i].style.display = 'none';
+      procHints[i].textContent   = 'Upload a signature to see the extraction';
+      procHints[i].style.display = 'block';
+      if (!files[0] && !files[1]) procRow.classList.remove('visible');
+    }
     updateBtn();
     hideResult();
   }
