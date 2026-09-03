@@ -4,8 +4,11 @@ data/raw/
 checkpoints/
 logs/
 outputs/
-datasets/
-
+*.HWR
+*.png
+*.jpg
+*.tgz
+*.db
 *.zip
 *.pt
 *.pth
@@ -17,3 +20,4 @@ old/
 .venv/
 _write_*
 thesis/
+._NISDCC-online-all-001-051

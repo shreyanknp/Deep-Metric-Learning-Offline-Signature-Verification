@@ -1,0 +1,184 @@
+############################################################################
+#                                                                          #
+#     THE NISDCC-online signature collection  - Version 1.0                 #
+#                                                                          #
+# --- Copyright (c) 2009, Louis Vuurpijl, Radboud University Nijmegen  --- #
+# --- Copyright (c) 2009, Katrin Franke,  Gjovik University College    --- #
+#                                                                          #
+#  DISCLAIMER:                                                             #
+#                                                                          #
+#    USER SHALL BE FREE TO USE AND COPY THESE DATA FREE OF CHARGE OR       #
+#    FURTHER OBLIGATION.                                                   #
+#                                                                          #
+#    USER SHALL NOT DISTRIBUTE THESE DATA BUT FOR HIS/HER OWN USE.         #
+#                                                                          #
+#    THESE DATA ARE NOT OF PRODUCT QUALITY AND MAY HAVE ERRORS OR          #
+#    DEFECTS.                                                              #
+#                                                                          #
+#    PROVIDER GIVES NO EXPRESS OR IMPLIED WARRANTY OF ANY KIND AND ANY     #
+#    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR PURPOSE ARE     #
+#    DISCLAIMED.                                                           #
+#                                                                          #
+#    PROVIDER SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL,       #
+#    INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THESE   #
+#    DATA.                                                                 #
+#                                                                          #
+############################################################################
+
+The NISDCC signature collection was generated in cooperation by:
+
+    Dr. Louis Vuurpijl (l.vuurpijl@donders.ru.nl)
+    Donders Institute for Brain, Cognition and Behaviour
+    Centre for Cognition (acronym: "DCC")
+    Radboud University Nijmegen
+
+and
+
+    Dr. Katrin Franke (kyfranke@ieee.org)
+    Norwegian Information Security Laboratory (NISlab, acronym: "NIS"),
+    Department of Computer Science and Media Technology,
+    Gjovik University College
+
+The name "NISDCC" is derived from the acronyms from both the NISlab (NIS) and
+Donders Centre for Cognition (DCC). These data are made publicly available for:
+
+  (i)  the ICDAR'09 signature verification competition and
+  (ii) research purposes
+
+Any use of these data should mention reference [1]:
+
+[1] C.E. van den Heuvel, K. Franke, L. Vuurpijl (et al),
+    The ICDAR 2009 signature verification competition,
+    In ICDAR2009 proceedings (will be updated)
+
+
+Dataset Information:
+====================
+The NISDCC signature collection was acquired in the framework of the WANDA
+project [2], a cooperative effort by Katrin Franke, Lambert Schomaker, and
+Louis Vuurpijl. The collection contains simultaneously acquired online and
+offline samples. The online dataset is called "NISDCC-online" and was processed
+and segmented by Louis Vuurpijl. The offline dataset is called "NISDCC-offline"
+and was scanned by Linda Alewijnse and Elisa van den Heuvel from the NFI. The
+offline signatures were automatically segmented and visually inspected by Louis
+Vuurpijl. Processing of the segmented signatures was performed by Katrin
+Franke. The collection contains:
+
+* authentic signatures from 12 writers (each writer wrote his signature 5 times)
+* forged signatures from 31 writers (5 forgeries per authentic signature)
+
+This README concerns the online samples. 
+     _____________________  
+    | +                 + |  Each writer was asked to write each signature 5
+    |   _____             |  times on an A4 sheet of paper. Writers wrote with
+    |  |__1__|            |  an inking digitizer pen on a Wacom A4-oversized
+    |                     |  tablet sampled at 200Hz at 100dpi resolution. The
+    |             _____   |  sheet of paper was fixed to the tablet on top of
+    |            |__2__|  |  a boxed form containing 5 boxes, organized as
+    |                     |  depicted to the left.
+    |   _____             |  Most writers wrote inside or across these boxes,
+    |  |__3__|            |  which were visible through the (blank) A4 paper.
+    |                     |
+    |             _____   |  This layout enabled relatively straight-forward
+    |            |__4__|  |  segmentation in both the offline and online
+    |                     |  domains. For calibration between the acquired
+    |   _____             |  online pen-tip trajectories and scanned offline
+    |  |__5__|            |  documents, writers were asked to mark four crosses
+    |                     |  located in the corners of the A4 paper.
+    |_+_________________+_|
+
+Online recording conditions and data collection details
+=======================================================
+The 43 writers were students in Psychology and Artificial Intelligence and
+employees of the DCC (former NICI). Among these writers were five experts in
+handwriting recognition and signature verification. Writers were instructed to
+(i) practice in writing authentic or copying forged signatures as much as they
+found necessary, using the Intuos inking pen on an A4 paper sheet on top of the
+tablet, (ii) after practicing, mark the four calibration crosses as depicted
+above, and (iii) write each signature in the given order in the corresponding
+boxes. Forgers were requested to copy signatures as fluently as possible, while
+trying to mimic the shape of the authentic signature as much as possible. Due
+to the difference in forgery skills, the quality of forgeries in the NISDCC
+collection is quite variable.
+
+During all recordings, an experimenter was present, guiding the writers in the
+data acquisition process. The task of the experimenter was to collect writer
+details, fix each A4 sheet of paper properly, and start recording the online
+samples by pressing a button. Writer details are not provided in the current
+distribution (version 1.0). All but one writer wrote in or near the required
+boxes. This writer <fff>=031 wrote 8 pages (5 signatures each) starting at the
+upper-right location (in stead of upper-left). All but one writer wrote in the
+correct vertical order. During writing of the third signature of <aaa>=12
+(middle row), writer <fff>=044 experienced a dried up inking pen. This
+signature (labeled NISDCC-044_012_03.hwr) was re-written at the proper vertical
+box orientation, but located on the right-side of the page.
+
+The NISDCC-online signature collection was recorded using:
+	- Wacom Intuos2 A4-oversized tablet
+	- Wacom Intuos inking pen (XP-110-MOD)
+	- Pentium-III Intell PC operating at 400MHz, 64MB Ram
+	- Windows98, 1st Edition (Release 4.10, 1998)
+	- Wacom tablet driver Version: 4.75-9
+    - "SIC Tablet" tablet-interface developed by the Frauenhofer IPK, Berlin
+
+Writer identifications and filenames
+====================================
+Each writer is identified via a three-digit identifier. The 12 authentic
+writers are identified as <aaa>={001,002,...012}. The 31 forgers are identified
+as <fff>={021,022,...,051}. Each signature is contained in a separate file,
+"NISDCC-<www>_<aaa>_<iii>" with extension ".hwr" (for description of the hwr
+data format, see below). Note that the writer identification <www> can refer to
+an authentic writer or forger. The index <idx> represents the position of the
+signature on the A4 sheet of paper. So, the file NISDCC-001_001_001.hwr contains
+the first signature written by the authentic writer <aaa>=001. Similarly, the
+file NISDCC-051_012_005.hwr contains the last forged signature from <aaa>=012
+written by forger <fff>=051.
+
+Online "hwr" Data Format:
+=========================
+The hwr (from HandWriting Recording) format is straight-forward. Each file
+contains a header line:
+
+	<label> <npoints>
+
+The <label> is similar to the filename, without the ".hwr" extension. The
+<npoints> denotes the number of subsequent sampled trajectory points. Each
+point contains five recorded pen-tip coordinates (x,y,p,a,e). For a detailed
+discussion on these pen coordinates (or channels), please consider [3]. Below,
+each channel is briefly described. Note that recording conditions were kept
+constant for all cases, which makes cross-signature comparisons feasible.
+
+	x = x-position on tablet (raw tablet values)
+	y = y-position on tablet (raw tablet values), (0,0) is bottom-left (!)
+	p = pen pressure in raw tablet values, between [0-1023]
+	a = azimuth angle of the pen (yaw) between [0-3600] (10*degrees)
+	e = elevation angle of the pen (pitch) between [0-900] (10*degrees)
+
+In occasions where the writer lifted the pen too far from the tablet to be
+sampled, the pressure coordinate encodes a PENFAR value and all other
+coordinates are 0. The PENFAR value is -4.
+
+Size of the NISDCC-online signature collection
+=============================================
+The NISDCC-online signature collection contains in total 1905 signature files.
+Three pages containing five signatures each are missing due to an error during
+recording (the experimenter forgot to press the OK-button which triggered the
+recording of tablet data). The experimenter was punished severely for these
+errors. The missing pages are: <www>_<aaa> = { 021_006, 028_005, 046_011 }.
+Since these 15 forged signatures are missing, the total number of forgeries is
+1845 (31*12*5-15) The total number of authentic signatures is 12x5 = 60. So the
+total number of signatures contained in the NISDCC-online collection is 1905.
+
+References:
+===========
+[1] C.E. van den Heuvel, K. Franke, L. Vuurpijl (et al),
+  The ICDAR 2009 signature verification competition,
+  In ICDAR2009 proceedings
+[2] K. Franke, L.R.B. Schomaker, C. Veenhuis, C. Taubenheim, I. Guyon, L.G.
+  Vuurpijl, M. van Erp, and G. Zwarts, WANDA: A generic framework applied in
+  forensic handwriting analysis and writer identification, Design and
+  Application of Hybrid Intelligent Systems, Proc. 3rd International
+  Conference on Hybrid Intelligent Systems (HIS03) (A. Abraham, M. Koeppen,
+  and K. Franke, eds.), IOS Press, Amsterdam, 2003, pp. 927-938.
+[3] Ink Markup Language (InkML), W3C Working Draft 23 October 2006,
+  http://www.w3.org/TR/InkML/#orientation. 
