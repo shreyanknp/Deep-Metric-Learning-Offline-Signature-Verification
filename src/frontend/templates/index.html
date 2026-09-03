@@ -550,12 +550,14 @@
     </div>
     {% endif %}
 
-    <!-- threshold slider -->
+    <!-- threshold slider (controlled by SHOW_THRESHOLD_SLIDER flag in app.py) -->
+    {% if show_threshold_slider %}
     <div class="threshold-row">
       <label for="threshold">Threshold</label>
       <input type="range" id="threshold" min="0.40" max="0.95" step="0.01" value="0.70" />
       <span class="val" id="threshold-val">0.70</span>
     </div>
+    {% endif %}
 
     <!-- verify button -->
     <button id="verify-btn" disabled>
@@ -855,12 +857,17 @@
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
   // ── threshold ─────────────────────────────────────────────────────────────
-  const slider = document.getElementById('threshold');
-  const valSpan = document.getElementById('threshold-val');
-  slider.addEventListener('input', () => {
-    valSpan.textContent = parseFloat(slider.value).toFixed(2);
-    hideResult();
-  });
+  // Controlled by SHOW_THRESHOLD_SLIDER (set in app.py). When hidden, no
+  // 'threshold' field is sent and the backend falls back to its own default.
+  const SHOW_THRESHOLD_SLIDER = {{ 'true' if show_threshold_slider else 'false' }};
+  const slider = SHOW_THRESHOLD_SLIDER ? document.getElementById('threshold') : null;
+  const valSpan = SHOW_THRESHOLD_SLIDER ? document.getElementById('threshold-val') : null;
+  if (SHOW_THRESHOLD_SLIDER) {
+    slider.addEventListener('input', () => {
+      valSpan.textContent = parseFloat(slider.value).toFixed(2);
+      hideResult();
+    });
+  }
 
   // ── verify button state ───────────────────────────────────────────────────
   const btn     = document.getElementById('verify-btn');
@@ -884,7 +891,7 @@
     const fd = new FormData();
     fd.append('image1', files[0]);
     fd.append('image2', files[1]);
-    fd.append('threshold', slider.value);
+    if (SHOW_THRESHOLD_SLIDER) fd.append('threshold', slider.value);
 
     try {
       const res  = await fetch('/verify', { method: 'POST', body: fd });

@@ -22,9 +22,12 @@ IMG_SIZE      = 224
 TTA_N         = 4
 DEVICE        = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# ── feature toggle ─────────────────────────────────────────────────────────
+# ── feature toggles ────────────────────────────────────────────────────────
 # Set to False to hide the "What the model sees" preprocessed preview panel.
 SHOW_PREVIEW  = True
+# Set to False to hide the similarity-threshold slider (falls back to a fixed
+# 0.70 threshold on the backend when hidden). Set to True to show it again.
+SHOW_THRESHOLD_SLIDER = False
 
 # ── load backbone ──────────────────────────────────────────────────────────
 backbone    = MultiScaleResNet34(EMB_DIM).to(DEVICE)
@@ -116,7 +119,12 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template('index.html', model_ready=MODEL_READY, show_preview=SHOW_PREVIEW)
+    return render_template(
+        'index.html',
+        model_ready=MODEL_READY,
+        show_preview=SHOW_PREVIEW,
+        show_threshold_slider=SHOW_THRESHOLD_SLIDER,
+    )
 
 
 @app.route('/preprocess', methods=['POST'])
